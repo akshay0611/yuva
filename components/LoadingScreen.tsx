@@ -74,6 +74,12 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
 
   useEffect(() => {
     if (phase === "interactive") {
+      try {
+        if (sessionStorage.getItem("techyuva_has_seen_loading") === "true") {
+          finishSequence();
+          return;
+        }
+      } catch {}
       const fullTitle = "Initializing Tech Yuva...";
       let i = 0;
       titleTimer.current = setInterval(() => {

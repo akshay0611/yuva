@@ -89,7 +89,7 @@ export default function HomePage() {
 
   return (
     <>
-      <LoadingScreen onComplete={() => setLoadingDone(true)} />
+      {!loadingDone && <LoadingScreen onComplete={() => setLoadingDone(true)} />}
       <div
         className={`min-h-[100dvh] bg-brand-bg text-text-primary relative grid-mesh selection:bg-neon-blue/20 select-none ${
           !loadingDone ? "invisible" : "animate-fade-in"
