@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Users,
   Cpu,
@@ -13,6 +13,8 @@ import {
   Layout,
   Calendar,
   X,
+  LogOut,
+  User,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { GithubIcon, InstagramIcon, LinkedinIcon } from "./BrandIcons";
@@ -26,8 +28,10 @@ import TechYuvaLogo from "./TechYuvaLogo";
 import BlurredImage from "./BlurredImage";
 import LoadingScreen from "./LoadingScreen";
 
+import { createClient } from "@/lib/supabase/client";
 import { UPCOMING_EVENTS, GALLERY_ITEMS, SPONSORS, TESTIMONIALS } from "@/lib/data";
 import { EventItem } from "@/lib/types";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export default function HomePage() {
   const [loadingDone, setLoadingDone] = useState(() => {
@@ -38,9 +42,21 @@ export default function HomePage() {
     }
   });
 
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isSpecsOpen, setIsSpecsOpen] = useState(false);
   const [selectedEventForReg, setSelectedEventForReg] = useState<EventItem | null>(null);
   const [selectedPosterUrl, setSelectedPosterUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const [ctaName, setCtaName] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
@@ -140,15 +156,37 @@ export default function HomePage() {
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
-              <a
-                href="https://chat.whatsapp.com/EARK4FcxQn0EW987zH9I08"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2 bg-[#1E90FF]/20 backdrop-blur-xl border border-[#1E90FF]/40 text-white text-[11px] font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(30,144,255,0.3)] hover:bg-[#1E90FF]/30 transition-all cursor-pointer"
-                id="header-join-cta"
-              >
-                JOIN COMMUNITY
-              </a>
+              {user ? (
+                <>
+                  <span className="text-[11px] font-mono text-neon-blue flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5" />
+                    {user.email}
+                  </span>
+                  <form action="/auth/signout" method="POST">
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-white/5 backdrop-blur-xl border border-white/10 text-white text-[11px] font-black uppercase tracking-widest rounded-lg hover:bg-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> SIGN OUT
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="/auth/signin"
+                    className="px-4 py-2 text-white text-[11px] font-black uppercase tracking-widest rounded-lg hover:text-neon-blue transition-all cursor-pointer"
+                  >
+                    SIGN IN
+                  </a>
+                  <a
+                    href="/auth/signup"
+                    className="px-5 py-2 bg-[#1E90FF]/20 backdrop-blur-xl border border-[#1E90FF]/40 text-white text-[11px] font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(30,144,255,0.3)] hover:bg-[#1E90FF]/30 transition-all cursor-pointer"
+                  >
+                    SIGN UP
+                  </a>
+                </>
+              )}
             </div>
           </div>
         </header>
