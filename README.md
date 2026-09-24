@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tech Yuva
 
-## Getting Started
+Student-led innovation guild platform — where youth meet to build future tech.
 
-First, run the development server:
+Next.js (App Router) + Supabase auth + React Query. UI is kept in parity with the React source site.
+
+## Stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Turbopack) |
+| UI | React 19, Tailwind CSS 4, Motion |
+| Auth | Supabase (`@supabase/ssr`) |
+| Data fetching | TanStack React Query |
+| Language | TypeScript (strict) |
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create `.env.local` (gitignored):
 
-## Learn More
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+# optional: used after sign-out redirect
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm run start` | Serve production build |
+| `npm run lint` | ESLint |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project layout
 
-## Deploy on Vercel
+```
+app/
+  page.tsx              # Home
+  layout.tsx            # Root layout + QueryProvider
+  globals.css           # Theme, base styles, overflow clip
+  auth/                 # Sign in, sign up, confirm, sign out
+  events/[slug]/        # Event detail (dynamic route)
+components/             # UI (HomePage, hero, dashboards, modals)
+lib/
+  data.ts               # Events, gallery, sponsors (static content)
+  types.ts              # Shared domain types
+  supabase/             # Browser + server Supabase clients
+public/                 # Images, posters, icons
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Auth
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Sign in / sign up:** `/auth/signin`, `/auth/signup` (Supabase email + password)
+- **Sign out:** `POST /auth/signout` → redirect `/`
+- **Navbar:** shows email + SIGN OUT when a session exists; otherwise SIGN IN / SIGN UP
+
+## Documentation
+
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — system design and data flow
+- [AI-AGENTS.md](./AI-AGENTS.md) — guidance for AI coding agents
+- [AGENTS.md](./AGENTS.md) — agent entrypoint (Next.js rules + project notes)
+
+## Deploy
+
+Deploy on [Vercel](https://vercel.com/new). Set Supabase env vars in the project settings.

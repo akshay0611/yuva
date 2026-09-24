@@ -1,1 +1,3 @@
 @AGENTS.md
+@AI-AGENTS.md
+@ARCHITECTURE.md
