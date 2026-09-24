@@ -11,9 +11,7 @@ const SYSTEM_LOGS = [
   "Booting Tech Yuva Core...",
   "Loading Innovation Engine...",
   "Connecting Community Services...",
-  "Initializing AI Assistant...",
   "Syncing Developer Network...",
-  "Loading Event Platform...",
   "Connecting Future Builders...",
   "Platform Ready.",
 ];

@@ -2,6 +2,49 @@ import { EventItem, GalleryItem, Sponsor, Testimonial } from "./types";
 
 export const UPCOMING_EVENTS: EventItem[] = [
   {
+    id: "cyber-intelligence-digital-defense",
+    title: "Cyber Intelligence & Digital Defense",
+    category: "workshop",
+    date: "2026-09-23",
+    rawDate: "September 23, 2026",
+    time: "2:00 PM – 3:30 PM",
+    venue: "Auditorium, IMS Ghaziabad University Courses Campus (IMSUC), Ghaziabad",
+    tags: ["Workshop", "Cybersecurity", "Digital Defense", "Intelligence"],
+    description:
+      "Explore the evolving world of cyber threats and learn how intelligence and technology work together to build a safer digital future.",
+    status: "upcoming",
+    spotsLeft: 100,
+    externalLink:
+      "https://docs.google.com/forms/d/e/1FAIpQLSdbSMHXwTHOOgAwZzKoWrhFbvbc__MyOve3Ik50tIhFepz2Iw/viewform?usp=dialog",
+    featured: true,
+    image: "/cyber-defense-poster.jpg",
+    metadata: {
+      slug: "cyber-intelligence-digital-defense",
+      tagline: "Detect • Analyze • Defend",
+      speaker: {
+        name: "Mr. Vikas Kumar",
+        designation: [
+          "Senior Forensic Expert",
+          "Cybersecurity Professional",
+          "Coordinator (Amroha Police)",
+        ],
+        photo: "/vikas-kumar.jpg",
+      },
+      highlights: [
+        "Live case studies & real-world examples",
+        "Cyber threat analysis & investigation techniques",
+        "Tools, technologies & defense strategies",
+        "Q&A session & interactive discussion",
+      ],
+      closingMessage: "Because Digital Security Is a Shared Responsibility.",
+      registrationOpen: false,
+      registrationMessage: "Registration details coming soon",
+    },
+  },
+];
+
+export const PAST_EVENTS: EventItem[] = [
+  {
     id: "drop-hack-26",
     title: "DROP HACK'26",
     category: "hackathon",
@@ -11,127 +54,131 @@ export const UPCOMING_EVENTS: EventItem[] = [
     venue: "Partner Event (Unstop)",
     tags: ["AI", "Web3", "Cyber Security", "FinTech", "Healthcare"],
     description:
-      "Tech Yuva is excited to announce that we're the Official Community Partner for DROP HACK'26! Compete with some of the brightest minds for a ₹50,000+ Prize Pool. Perks include Certificates, Goodies, and Merch.",
-    status: "upcoming",
+      "Tech Yuva was proud to be the Official Community Partner for DROP HACK'26! Hundreds of builders competed for a ₹50,000+ Prize Pool.",
+    status: "past",
     externalLink:
       "https://unstop.com/hackathons/drophack-siec-community-1701822?lb=e14Q58g&utm_medium=Share&utm_source=online_coding_challenge&utm_campaign=Manav04mahawar",
-    featured: true,
-    image: "/drophack-poster.png",
-  },
-  {
-    id: "yuvahack-2026",
-    title: "YuvaHack 36-Hour National Sprint",
-    category: "hackathon",
-    date: "2026-09-18",
-    rawDate: "September 18-20, 2026",
-    time: "36 Hours",
-    venue: "Flagship Campus Hall, Delhi",
-    tags: ["AI", "Web3", "SaaS", "Robotics"],
-    description:
-      "Form teams of up to 4 student developers to build modern database-driven applications under high pressure, with 24/7 startup CTO mentoring and high-end deck reviews.",
-    status: "upcoming",
-    spotsLeft: 47,
-    featured: true,
-  },
-  {
-    id: "ai-builders-bootcamp",
-    title: "AI Builders Bootcamp",
-    category: "bootcamp",
-    date: "2026-10-10",
-    rawDate: "October 10, 2026",
-    time: "Full Day",
-    venue: "Virtual Discord HQ",
-    tags: ["Gemini", "RAG", "React", "Tailwind"],
-    description:
-      "Write server-side LLM secure proxies, build pgvector-based RAG workflows, and design clean micro-interaction interfaces. Limited to 150 student builders.",
-    status: "upcoming",
-    spotsLeft: 92,
+    featured: false,
+    image: "",
   },
 ];
-
-export const PAST_EVENTS: EventItem[] = [];
 
 export const GALLERY_ITEMS: GalleryItem[] = [
   {
-    id: "gal-1",
-    title: "CodeSprints 2025 Arena",
-    event: "CodeSprints 2025",
-    statLabel: "Developers",
-    statValue: "200+",
+    id: "gal-cohort-portrait-1",
+    title: "Tech Yuva Community Hall of Fame",
+    event: "Milestone Log",
+    statLabel: "COMMUNITY",
+    statValue: "500+ Strong",
     mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop",
-    highlightText: "200+ developers solved high-complexity DSA obstacles in a competitive arena.",
+    mediaUrl: "/Images/gallery-1.jpeg",
+    highlightText:
+      "Celebrating community milestones, student contributors, and hackathon champions building India's tech future.",
   },
   {
-    id: "gal-2",
-    title: "DevCon 2025 Summit",
-    event: "DevCon 2025",
-    statLabel: "Attendees",
-    statValue: "400+",
+    id: "gal-delegates-stage-2",
+    title: "Official Delegation Stage Presentation",
+    event: "Industry Exchange",
+    statLabel: "PARTNERSHIP",
+    statValue: "Ecosystem Link",
     mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop",
-    highlightText: "Cornerstone developer summit with keynote sessions on serverless architecture.",
+    mediaUrl: "/Images/gallery-2.jpeg",
+    highlightText:
+      "Tech Yuva members presenting technical initiatives and student innovation projects to industry representatives.",
   },
   {
-    id: "gal-3",
-    title: "Web3 Zero Bootcamp",
-    event: "Web3 Zero",
-    statLabel: "Builders",
-    statValue: "80+",
+    id: "gal-mentorship-loop-3",
+    title: "Executive Mentorship & Q&A Round",
+    event: "Founder Sync",
+    statLabel: "INSIGHTS",
+    statValue: "1-on-1 Access",
     mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?q=80&w=1200&auto=format&fit=crop",
-    highlightText: "Builders deployed testnet dApps and audited smart contracts end to end.",
+    mediaUrl: "/Images/gallery-3.jpeg",
+    highlightText:
+      "Deep-dive career guidance, code reviews, and industry roadmap insights directly from senior practitioners.",
   },
   {
-    id: "gal-4",
-    title: "Hackathon Nights",
-    event: "Grand Sprints",
-    statLabel: "Projects",
-    statValue: "80+",
+    id: "gal-paytm-delegation-4",
+    title: "Paytm Headquarters Industry Immersion",
+    event: "Corporate Immersion",
+    statLabel: "DELEGATION",
+    statValue: "45+ Builders",
     mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1200&auto=format&fit=crop",
-    highlightText: "MVPs spawned across AI, Web3 and fintech tracks during our flagship sprints.",
+    mediaUrl: "/Images/gallery-4.jpeg",
+    highlightText:
+      "Tech Yuva builders visited the Paytm campus for exclusive architecture masterclasses and fintech engineering deep-dives.",
+  },
+  {
+    id: "gal-paytm-keynote-5",
+    title: "Engineering Keynote & Leadership Fireside",
+    event: "Tech Masterclass",
+    statLabel: "ATTENDANCE",
+    statValue: "Full House",
+    mediaType: "image",
+    mediaUrl: "/Images/gallery-5.jpeg",
+    highlightText:
+      "Live technical discourse on scaling high-frequency transactional architectures and distributed system resiliency.",
+  },
+  {
+    id: "gal-hallway-track-6",
+    title: "The Hallway Track: Network & Ideate",
+    event: "Networking Loop",
+    statLabel: "NETWORKING",
+    statValue: "Active Exchange",
+    mediaType: "image",
+    mediaUrl: "/Images/gallery-6.jpeg",
+    highlightText:
+      "Spontaneous problem solving, hackathon team formation, and startup ideation during conference intermissions.",
+  },
+  {
+    id: "gal-campus-cohort-7",
+    title: "Community Builder Cohort Gathering",
+    event: "Campus Sprint",
+    statLabel: "COLLABORATION",
+    statValue: "100% Student-Led",
+    mediaType: "image",
+    mediaUrl: "/Images/gallery-7.jpeg",
+    highlightText:
+      "Hands-on collaboration session uniting developers, security researchers, and designers under the Tech Yuva banner.",
+  },
+  {
+    id: "gal-auditorium-summit-8",
+    title: "Grand Technology & Innovation Summit",
+    event: "Annual Convention",
+    statLabel: "IMPACT",
+    statValue: "250+ Attendees",
+    mediaType: "image",
+    mediaUrl: "/Images/gallery-8.jpeg",
+    highlightText:
+      "Keynote talks, open-source project showcases, and student founder pitch exhibitions in the central auditorium.",
+  },
+  {
+    id: "gal-core-team-9",
+    title: "Tech Yuva Core Operations Council",
+    event: "Leadership Sprint",
+    statLabel: "LEADERSHIP",
+    statValue: "Core Guild",
+    mediaType: "image",
+    mediaUrl: "/Images/gallery-9.jpeg",
+    highlightText:
+      "Student chapter leads and event coordinators planning upcoming hackathons, speaker series, and technical workshops.",
+  },
+  {
+    id: "gal-workshop-session-10",
+    title: "Interactive Coding & System Design Lab",
+    event: "Hands-on Workshop",
+    statLabel: "CODE RUNS",
+    statValue: "Live Deployments",
+    mediaType: "image",
+    mediaUrl: "/Images/gallery-10.jpeg",
+    highlightText:
+      "Peer-to-peer coding sessions breaking down full-stack pipelines, database schemas, and AI application workflows.",
   },
 ];
 
-export const SPONSORS: Sponsor[] = [
-  { name: "Vercel", logo: "▲", domain: "deployment", contribution: "Full-year hosting credits & edge deployments for student MVPs.", statusText: "LEAD SPONSOR", tier: "platinum" },
-  { name: "Linear", logo: "◆", domain: "productivity", contribution: "Premium project tooling for cohort teams and open-source repos.", statusText: "PARTNER", tier: "gold" },
-  { name: "Supabase", logo: "◼", domain: "backend", contribution: "Serverless Postgres credits and realtime infra for hackathon builds.", statusText: "PARTNER", tier: "gold" },
-  { name: "Cloudflare", logo: "☁", domain: "edge", contribution: "CDN and serverless Workers sponsorship for campus events.", statusText: "PARTNER", tier: "silver" },
-  { name: "GitHub", logo: "🐙", domain: "code", contribution: "Free Team plans and Codespaces hours for active members.", statusText: "PARTNER", tier: "gold" },
-  { name: "DigitalOcean", logo: "◍", domain: "cloud", contribution: "Cloud credits and physical server packs for incubation rooms.", statusText: "PARTNER", tier: "silver" },
-];
+export const SPONSORS: Sponsor[] = [];
 
-export const TESTIMONIALS: Testimonial[] = [
-  {
-    id: "tes-1",
-    name: "Priya Iyer",
-    role: "Student Developer",
-    organization: "YuvaHack Finalist",
-    avatar: "https://i.pravatar.cc/80?img=47",
-    rating: 5,
-    quote: "Tech Yuva moved me from tutorial loops to shipping a real database-driven app in one weekend. The mentorship was unreal.",
-  },
-  {
-    id: "tes-2",
-    name: "Arjun Mehta",
-    role: "Bootcamp Graduate",
-    organization: "AI Builders Cohort",
-    avatar: "https://i.pravatar.cc/80?img=12",
-    rating: 5,
-    quote: "We deployed a full RAG pipeline with pgvector inside a single workshop day. No slides, just real deployment.",
-  },
-  {
-    id: "tes-3",
-    name: "Sara Khan",
-    role: "PitchCraft Founder",
-    organization: "Seed Recipient",
-    avatar: "https://i.pravatar.cc/80?img=32",
-    rating: 5,
-    quote: "PitchCraft connected my prototype to angel investors and I walked away with real cloud credits and mentorship.",
-  },
-];
+export const TESTIMONIALS: Testimonial[] = [];
 
 export const GENERAL_BLUEPRINT_DOCS = {
   uxArchitecture: {

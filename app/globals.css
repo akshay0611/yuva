@@ -49,12 +49,17 @@
 }
 
 @layer base {
+  html {
+    overflow-x: hidden;
+  }
+
   body {
     background-color: var(--brand-bg);
     color: var(--text-primary);
     font-family: var(--font-sans);
     scroll-behavior: smooth;
     transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
   }
 
   /* Custom Premium Scrollbar */

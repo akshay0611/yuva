@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Terminal, Copy, Check, Play, RefreshCw } from "lucide-react";
+import { Copy, Check, Play, RefreshCw } from "lucide-react";
 
 interface HeroTerminalProps {
-  onOpenSpecs: () => void;
+  isReady?: boolean;
 }
 
 const FULL_CODE_TEXT = `const future = {
@@ -16,12 +16,13 @@ const FULL_CODE_TEXT = `const future = {
 
 console.log("Your journey starts here 🚀");`;
 
-export default function HeroTerminal({ onOpenSpecs }: HeroTerminalProps) {
+export default function HeroTerminal({ isReady = false }: HeroTerminalProps) {
   const [copied, setCopied] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [progressLog, setProgressLog] = useState<string[]>([]);
   const [outputResult, setOutputResult] = useState<string | null>(null);
   const [executionLine, setExecutionLine] = useState(-1);
+  const [displayTitle, setDisplayTitle] = useState("TECH YUVA");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const codeLines = FULL_CODE_TEXT.split("\n");
@@ -44,10 +45,10 @@ export default function HeroTerminal({ onOpenSpecs }: HeroTerminalProps) {
     setExecutionLine(0);
 
     const logs = [
-      "⚡ Initializing Vercel Edge Node...",
-      "🔍 Resolving dependencies from package.json...",
-      "📦 Implemented @google/genai module structures...",
-      "⚙️ Compiling TypeScript server targets to CommonJS...",
+      "⚡ Initializing Tech Yuva Core...",
+      "🔍 Connecting Developer Network...",
+      "📦 Syncing Innovation Engine...",
+      "⚙️ Compiling Cyber Intelligence & Defense modules...",
       "✅ Execution success in 143ms.",
     ];
 
@@ -59,10 +60,11 @@ export default function HeroTerminal({ onOpenSpecs }: HeroTerminalProps) {
       } else {
         clearInterval(logInterval);
         setOutputResult(
-          "Your journey starts here 🚀\nJoin Tech Yuva to access active Hackathons! ✨"
+          "⚡ Initialized Tech Yuva Ecosystem.\n🚀 Workshops • Cyber Security • Hackathons • Startup Culture\n✨ Welcome to the Community!"
         );
         setIsRunning(false);
         setExecutionLine(-1);
+        setDisplayTitle("WHERE YOUTH MEET TO BUILD FUTURE TECH");
       }
     }, 450);
 
@@ -78,12 +80,18 @@ export default function HeroTerminal({ onOpenSpecs }: HeroTerminalProps) {
   };
 
   useEffect(() => {
+    if (!isReady) {
+      setDisplayTitle("TECH YUVA");
+      return;
+    }
+
+    setDisplayTitle("TECH YUVA");
     const timer = setTimeout(() => {
       runCodeCompile();
-    }, 1500);
+    }, 1200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isReady]);
 
   return (
     <div
@@ -102,9 +110,20 @@ export default function HeroTerminal({ onOpenSpecs }: HeroTerminalProps) {
           </span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-sans font-black leading-[0.9] uppercase tracking-tighter italic text-white">
-          <span className="text-saffron">TECH</span>{" "}
-          <span className="text-emerald-green">YUVA</span>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-sans font-black leading-[0.9] uppercase tracking-tighter italic text-white transition-all duration-700">
+          {displayTitle.toLowerCase().includes("build future tech") ? (
+            <>
+              Where Youth Meet To{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E90FF] to-[#00BFFF] inline-block pr-3.5 pb-1">
+                Build Future Tech
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="text-saffron">TECH</span>{" "}
+              <span className="text-emerald-green">YUVA</span>
+            </>
+          )}
         </h1>
 
         <p className="text-lg text-gray-400 max-w-xl font-light leading-relaxed">
@@ -123,37 +142,6 @@ export default function HeroTerminal({ onOpenSpecs }: HeroTerminalProps) {
             JOIN COMMUNITY
             <span className="font-mono text-xs">→</span>
           </a>
-
-          <button
-            type="button"
-            onClick={onOpenSpecs}
-            className="h-12 px-8 bg-white/[0.04] backdrop-blur-xl border border-white/[0.1] text-white font-bold uppercase text-xs tracking-widest rounded-lg hover:bg-white/[0.08] hover:border-white/[0.15] transition-all italic flex items-center justify-center gap-2"
-            id="hero-specs-cta"
-          >
-            <Terminal className="w-4 h-4 text-[#1E90FF]" />
-            VIEW STATS & SPECS
-          </button>
-        </div>
-
-        <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/5 font-mono">
-          <div>
-            <p className="text-2xl font-black font-sans text-white">500+</p>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-              Active Members
-            </p>
-          </div>
-          <div>
-            <p className="text-2xl font-black font-sans text-white">20+</p>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-              Events Hosted
-            </p>
-          </div>
-          <div>
-            <p className="text-2xl font-black font-sans text-[#FF7A00]">1000+</p>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-              Impacted Builders
-            </p>
-          </div>
         </div>
       </div>
 

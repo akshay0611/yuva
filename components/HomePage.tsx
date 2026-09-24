@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Users,
   Cpu,
@@ -10,30 +11,43 @@ import {
   Send,
   Star,
   Shield,
-  Layout,
+  Terminal,
   Calendar,
   X,
   LogOut,
   User,
+  ArrowRight,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { GithubIcon, InstagramIcon, LinkedinIcon } from "./BrandIcons";
 
 import HeroTerminal from "./HeroTerminal";
 import FounderVision from "./FounderVision";
-import TechYuvaAI from "./TechYuvaAI";
-import ArchitectureDocs from "./ArchitectureDocs";
 import EventRegisterModal from "./EventRegisterModal";
 import TechYuvaLogo from "./TechYuvaLogo";
-import BlurredImage from "./BlurredImage";
 import LoadingScreen from "./LoadingScreen";
+import { ParallaxCards } from "./ParallaxCards";
+import MemberDashboard from "./MemberDashboard";
+import AdminCMS from "./AdminCMS";
+import AdminTerminal from "./AdminTerminal";
+import CertificateViewer from "./CertificateViewer";
 
 import { createClient } from "@/lib/supabase/client";
 import { UPCOMING_EVENTS, GALLERY_ITEMS, SPONSORS, TESTIMONIALS } from "@/lib/data";
 import { EventItem } from "@/lib/types";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: "visitor" | "member" | "admin";
+  github: string;
+  joinedAt: string;
+}
+
 export default function HomePage() {
+  const router = useRouter();
   const [loadingDone, setLoadingDone] = useState(() => {
     try {
       return sessionStorage.getItem("techyuva_has_seen_loading") === "true";
@@ -43,20 +57,54 @@ export default function HomePage() {
   });
 
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [isSpecsOpen, setIsSpecsOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [activeTab, setActiveTab] = useState<"upcoming" | "portal" | "admin">("upcoming");
+  const [selectedCertificate, setSelectedCertificate] = useState<unknown>(null);
+  const [adminMode, setAdminMode] = useState<"terminal" | "cms">("cms");
+  const [cmsData, setCmsData] = useState<Record<string, unknown> | null>(null);
   const [selectedEventForReg, setSelectedEventForReg] = useState<EventItem | null>(null);
   const [selectedPosterUrl, setSelectedPosterUrl] = useState<string | null>(null);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        setCurrentUser((prev) =>
+          prev && prev.id === session.user.id
+            ? prev
+            : {
+                id: session.user.id,
+                name:
+                  (session.user.user_metadata?.name as string) ||
+                  session.user.email?.split("@")[0] ||
+                  "",
+                email: session.user.email || "",
+                role: (session.user.user_metadata?.role as UserProfile["role"]) || "member",
+                github: (session.user.user_metadata?.github as string) || "",
+                joinedAt: session.user.created_at,
+              }
+        );
+      } else {
+        setCurrentUser(null);
+        setActiveTab("upcoming");
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const triggerRefresh = () => {};
+
+  const handleViewEventDetail = (evt: EventItem) => {
+    const slug = evt.metadata?.slug || evt.id;
+    router.push(`/events/${slug}`);
+  };
 
   const [ctaName, setCtaName] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
@@ -99,6 +147,7 @@ export default function HomePage() {
   );
 
   const dbEvents = UPCOMING_EVENTS;
+  const dbRegistrations: unknown[] = [];
   const upcomingEvents = dbEvents.filter(
     (e) => e.status === "upcoming" || e.status === "active" || !e.status
   );
@@ -107,10 +156,41 @@ export default function HomePage() {
     <>
       {!loadingDone && <LoadingScreen onComplete={() => setLoadingDone(true)} />}
       <div
-        className={`min-h-[100dvh] bg-brand-bg text-text-primary relative grid-mesh selection:bg-neon-blue/20 select-none ${
+        className={`min-h-[100dvh] bg-brand-bg text-text-primary relative grid-mesh selection:bg-neon-blue/20 select-none overflow-x-hidden ${
           !loadingDone ? "invisible" : "animate-fade-in"
         }`}
       >
+        {/* Dynamic Schedulable Announcements Banner from Database CMS */}
+        {Array.isArray(cmsData?.announcements) &&
+          (cmsData.announcements as Array<Record<string, unknown>>)
+            .filter((ann) => ann.enabled)
+            .map((ann) => {
+              const bgColors: Record<string, string> = {
+                urgent: "bg-red-500/10 border-red-500/20 text-red-400",
+                warning: "bg-saffron/10 border-saffron/20 text-saffron",
+                success: "bg-emerald-green/10 border-emerald-green/20 text-emerald-green",
+                info: "bg-neon-blue/10 border-neon-blue/20 text-neon-blue",
+              };
+              const currentStyle = bgColors[(ann.type as string) || "info"] || bgColors.info;
+              return (
+                <div
+                  key={ann.id as string}
+                  className={`w-full py-2.5 px-6 border-b text-center text-xs font-mono font-medium flex items-center justify-center gap-2 relative z-50 ${currentStyle}`}
+                >
+                  <span className="flex h-2 w-2 rounded-full bg-current animate-pulse shrink-0" />
+                  <span>{String(ann.message ?? "")}</span>
+                  {Boolean(ann.targetLink) && (
+                    <a
+                      href={String(ann.targetLink)}
+                      className="underline hover:opacity-85 transition-opacity inline-flex items-center gap-1 font-bold"
+                    >
+                      Learn more <ArrowRight className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+
         {/* Background Atmosphere */}
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#1E90FF]/10 rounded-full blur-[120px] pointer-events-none z-0" />
         <div className="absolute top-[80%] left-[-5%] w-[400px] h-[400px] bg-[#FF7A00]/5 rounded-full blur-[100px] pointer-events-none z-0" />
@@ -119,7 +199,27 @@ export default function HomePage() {
         <header className="sticky top-0 z-40 bg-[#0A0A0A]/60 backdrop-blur-xl backdrop-saturate-150 border-b border-white/[0.06] px-6 md:px-10 py-5 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center select-none cursor-pointer">
-              <TechYuvaLogo size={56} />
+              <TechYuvaLogo size={66} />
+            </div>
+
+            <div className="md:hidden flex items-center gap-4">
+              {user ? (
+                <form action="/auth/signout" method="POST">
+                  <button
+                    type="submit"
+                    className="text-xs font-bold uppercase text-red-400 cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </form>
+              ) : (
+                <a
+                  href="/auth/signin"
+                  className="text-xs font-bold uppercase text-[#1E90FF] cursor-pointer"
+                >
+                  Sign In
+                </a>
+              )}
             </div>
 
             <nav className="hidden md:flex items-center gap-8 text-[11px] font-semibold uppercase tracking-widest text-text-secondary select-none">
@@ -146,12 +246,6 @@ export default function HomePage() {
                 className="hover:text-text-primary transition-colors cursor-pointer"
               >
                 COMMUNITY
-              </button>
-              <button
-                onClick={() => setIsSpecsOpen(true)}
-                className="text-[#1E90FF] hover:text-text-primary transition-all cursor-pointer flex items-center gap-1.5 font-bold"
-              >
-                <Layout className="w-3.5 h-3.5" /> ARCHITECT SPECS
               </button>
             </nav>
 
@@ -200,10 +294,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <HeroTerminal
-              key={loadingDone ? "ready" : "loading"}
-              onOpenSpecs={() => setIsSpecsOpen(true)}
-            />
+            <HeroTerminal isReady={loadingDone} />
           </motion.section>
 
           {/* SECTION 2: ABOUT TECH YUVA */}
@@ -467,16 +558,60 @@ export default function HomePage() {
                   COHORT REGISTRY DESK
                 </span>
                 <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-text-primary font-bold">
-                  ACTIVE EXPEDITIONS
+                  {activeTab === "upcoming"
+                    ? "ACTIVE EXPEDITIONS"
+                    : activeTab === "portal"
+                      ? "DEVELOPER COHORT PASSPORT"
+                      : "ADMINISTRATOR COMMAND DECK"}
                 </h2>
                 <p className="text-xs text-secondary-text font-sans">
-                  Select and register developer conference passes instantly.
+                  {activeTab === "upcoming"
+                    ? "Select and register developer conference passes instantly."
+                    : activeTab === "portal"
+                      ? "Log in to display check-ins and lock digital holographic certificates."
+                      : "Create sprints, track attendance checkboxes, and download full CSV files."}
                 </p>
+              </div>
+
+              <div className="flex bg-[#0c0f13]/90 border border-white/10 p-1.5 rounded-lg shrink-0 select-none">
+                <button
+                  onClick={() => setActiveTab("upcoming")}
+                  className={`px-4 py-2 rounded-lg text-xs font-mono font-bold uppercase cursor-pointer transition-all ${
+                    activeTab === "upcoming"
+                      ? "bg-[#1E90FF]/20 border border-[#1E90FF]/40 text-[#00BFFF] backdrop-blur-xl shadow-lg"
+                      : "text-[#a0a0a0] hover:text-white"
+                  }`}
+                >
+                  1. EXPEDITIONS
+                </button>
+                <button
+                  onClick={() => setActiveTab("portal")}
+                  className={`px-4 py-2 rounded-lg text-xs font-mono font-bold uppercase cursor-pointer transition-all ${
+                    activeTab === "portal"
+                      ? "bg-[#1E90FF]/20 border border-[#1E90FF]/40 text-[#00BFFF] backdrop-blur-xl shadow-lg"
+                      : "text-[#a0a0a0] hover:text-white"
+                  }`}
+                >
+                  2. MEMBER CONSOLE
+                </button>
+                {currentUser && (
+                  <button
+                    onClick={() => setActiveTab("admin")}
+                    className={`px-4 py-2 rounded-lg text-xs font-mono font-bold uppercase cursor-pointer transition-all ${
+                      activeTab === "admin"
+                        ? "bg-red-500/20 border border-red-500/40 text-red-400 backdrop-blur-xl shadow-lg"
+                        : "text-[#a0a0a0] hover:text-white"
+                    }`}
+                  >
+                    3. ADMIN ROOM
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
-              {upcomingEvents.map((evt) => (
+            {activeTab === "upcoming" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+                {upcomingEvents.map((evt) => (
                 <div
                   key={evt.id}
                   className="relative rounded-xl border border-white/10 bg-[#0F1115]/50 overflow-hidden flex flex-col justify-between glass-panel hover:border-white/20 transition-all group"
@@ -550,31 +685,25 @@ export default function HomePage() {
                           ))}
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="font-mono text-[10px] text-secondary-text">
-                          Seats Remaining:{" "}
-                          <span className="text-saffron font-bold text-xs">
-                            {evt.spotsLeft !== undefined ? evt.spotsLeft : 25}
-                          </span>
-                        </div>
-                        {evt.externalLink ? (
-                          <a
-                            href={evt.externalLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-1.5 bg-[#1E90FF]/20 backdrop-blur-xl border border-[#1E90FF]/40 hover:bg-[#1E90FF]/30 text-white text-xs font-mono font-bold uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(30,144,255,0.3)] transition-all cursor-pointer inline-block text-center"
-                          >
-                            SECURE PASS
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedEventForReg(evt)}
-                            className="px-4 py-1.5 bg-[#1E90FF]/20 backdrop-blur-xl border border-[#1E90FF]/40 hover:bg-[#1E90FF]/30 text-white text-xs font-mono font-bold uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(30,144,255,0.3)] transition-all cursor-pointer"
-                          >
-                            SECURE PASS
-                          </button>
-                        )}
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleViewEventDetail(evt)}
+                          className="px-3.5 py-2 bg-[#00BFFF]/10 backdrop-blur-xl border border-[#00BFFF]/30 hover:bg-[#00BFFF]/20 text-[#00BFFF] text-xs font-mono font-bold uppercase tracking-widest rounded-lg transition-all cursor-pointer"
+                        >
+                          VIEW DETAILS
+                        </button>
+                        <a
+                          href={
+                            evt.externalLink ||
+                            "https://docs.google.com/forms/d/e/1FAIpQLSdbSMHXwTHOOgAwZzKoWrhFbvbc__MyOve3Ik50tIhFepz2Iw/viewform?usp=dialog"
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-[#1E90FF]/20 backdrop-blur-xl border border-[#1E90FF]/40 hover:bg-[#1E90FF]/30 text-white text-xs font-mono font-bold uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(30,144,255,0.3)] transition-all cursor-pointer inline-block text-center"
+                        >
+                          SECURE PASS
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -582,95 +711,193 @@ export default function HomePage() {
               ))}
 
               {upcomingEvents.length === 0 && (
-                <div className="col-span-3 text-center py-12 border border-white/5 bg-[#0d0f13]/40 rounded-xl space-y-2">
-                  <p className="text-xs text-secondary-text">
-                    No active upcoming sprints found on the database.
+                <div className="col-span-full text-center py-16 px-6 border border-white/10 bg-[#0d0f13]/40 rounded-xl space-y-4">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-[#1E90FF]/10 text-[#00BFFF] border border-[#1E90FF]/20 flex items-center justify-center">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-display uppercase tracking-wider text-white">
+                    Next Flagship Cohort In Preparation
+                  </h3>
+                  <p className="text-xs text-text-secondary max-w-md mx-auto leading-relaxed font-sans">
+                    Stay tuned! The Tech Yuva council is curating the next wave of
+                    high-performance hackathons, physical sprints, and dev bootcamps.
                   </p>
-                  <p className="text-[10px] font-mono text-[#00BFFF]">
-                    Check back soon for new expedition launches!
-                  </p>
+                  <a
+                    href="https://chat.whatsapp.com/EARK4FcxQn0EW987zH9I08"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1E90FF]/20 border border-[#1E90FF]/40 text-white font-mono text-xs uppercase font-bold rounded-lg hover:bg-[#1E90FF]/30 transition-all shadow-lg cursor-pointer"
+                  >
+                    Join WhatsApp Community →
+                  </a>
                 </div>
               )}
-            </div>
+              </div>
+            )}
+
+            {activeTab === "portal" && (
+              <div className="max-w-4xl mx-auto w-full animate-fade-in">
+                <MemberDashboard
+                  currentUser={currentUser}
+                  allEvents={dbEvents}
+                  onLogin={(u) => {
+                    setCurrentUser(u);
+                    triggerRefresh();
+                  }}
+                  onLogout={() => {
+                    setCurrentUser(null);
+                    setActiveTab("upcoming");
+                    triggerRefresh();
+                  }}
+                  onViewCertificate={(cert) => {
+                    setSelectedCertificate(cert);
+                  }}
+                />
+              </div>
+            )}
+
+            {activeTab === "admin" && (
+              <div className="w-full animate-fade-in space-y-6">
+                {currentUser?.role === "admin" && (
+                  <div className="flex bg-[#0c0f13] border border-white/10 p-1 rounded-lg max-w-sm select-none">
+                    <button
+                      onClick={() => setAdminMode("cms")}
+                      className={`flex-1 py-1.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        adminMode === "cms"
+                          ? "bg-neon-blue text-black shadow-lg"
+                          : "text-[#a0a0a0] hover:text-white"
+                      }`}
+                    >
+                      1. Visual CMS
+                    </button>
+                    <button
+                      onClick={() => setAdminMode("terminal")}
+                      className={`flex-1 py-1.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        adminMode === "terminal"
+                          ? "bg-neon-blue text-black shadow-lg"
+                          : "text-[#a0a0a0] hover:text-white"
+                      }`}
+                    >
+                      <Terminal className="w-3.5 h-3.5" /> 2. CLI Terminal
+                    </button>
+                  </div>
+                )}
+
+                {adminMode === "cms" ? (
+                  <AdminCMS
+                    currentUser={currentUser}
+                    allEvents={dbEvents}
+                    allRegistrations={dbRegistrations}
+                    cmsData={cmsData}
+                    setCmsData={setCmsData}
+                    onTriggerRefresh={triggerRefresh}
+                    onLoginAsAdmin={async () => {
+                      try {
+                        const response = await fetch("/api/auth/login", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            email: "dakshchaudhary2668@gmail.com",
+                          }),
+                        });
+                        if (response.ok) {
+                          const { user } = await response.json();
+                          setCurrentUser(user);
+                          triggerRefresh();
+                        }
+                      } catch (err) {
+                        console.error("Admin fast login failure", err);
+                      }
+                    }}
+                  />
+                ) : (
+                  <AdminTerminal
+                    currentUser={currentUser}
+                    allEvents={dbEvents}
+                    allRegistrations={dbRegistrations}
+                    onTriggerRefresh={triggerRefresh}
+                    onLoginAsAdmin={async () => {
+                      try {
+                        const response = await fetch("/api/auth/login", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            email: "dakshchaudhary2668@gmail.com",
+                          }),
+                        });
+                        if (response.ok) {
+                          const { user } = await response.json();
+                          setCurrentUser(user);
+                          triggerRefresh();
+                        }
+                      } catch (err) {
+                        console.error("Admin fast login failure", err);
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </motion.section>
 
           {/* SECTION 6 & 7: PAST EVENTS GALLERY & COMMUNITY IMPACT METRICS */}
           <motion.section
             ref={mainGalleryRef}
-            className="py-12 px-4 space-y-16"
+            className="py-14 px-4 space-y-12"
             id="gallery-impact-section"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              {/* Gallery Left text column */}
-              <div className="lg:col-span-4 space-y-6">
-                <div>
-                  <span className="text-xs font-mono text-emerald-green uppercase tracking-[0.2em] font-semibold block">
-                    COHORT LOGS
-                  </span>
-                  <h2 className="text-3xl md:text-4xl font-display uppercase tracking-tight text-text-primary font-bold leading-tight">
-                    PAST HIGHLIGHTS &amp; GRAND GALLERY
-                  </h2>
-                </div>
+            {/* Header Row */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
+              <div className="space-y-3 max-w-2xl">
+                <span className="text-xs font-mono text-emerald-green uppercase tracking-[0.2em] font-semibold block">
+                  COHORT LOGS • 3D PARALLAX VAULT
+                </span>
+                <h2 className="text-3xl md:text-5xl font-display uppercase tracking-tight text-text-primary font-bold leading-tight">
+                  PAST HIGHLIGHTS &amp; GRAND GALLERY
+                </h2>
                 <p className="text-sm text-secondary-text font-sans font-light leading-relaxed">
-                  Explore real historic milestones completed by community sub-teams during our 2025
-                  and 2026 build periods. Check verification metrics on-site.
+                  Explore real historic milestones and industry immersions completed by
+                  community sub-teams during our 2025 and 2026 build periods. Move your
+                  cursor to experience the 3D depth field, or click any card to inspect
+                  the visual archive.
                 </p>
+              </div>
 
-                <div className="p-4 rounded border border-border-color bg-brand-bg-sec/50 space-y-3 font-mono">
-                  <p className="text-[10px] uppercase text-secondary-text tracking-wider font-bold">
-                    Consolidated Track Records
+              {/* Consolidated Track Records pill */}
+              <div className="p-4 rounded-xl border border-border-color bg-brand-bg-sec/50 space-y-2.5 font-mono text-xs w-full md:w-auto min-w-[280px]">
+                <p className="text-[10px] uppercase text-secondary-text tracking-wider font-bold">
+                  Consolidated Track Records
+                </p>
+                <div className="space-y-1 text-xs">
+                  <p className="flex justify-between gap-4">
+                    <span>⭐ Paytm Immersion &amp; Sprints</span>{" "}
+                    <span className="text-text-primary font-bold">45+ Builders</span>
                   </p>
-                  <div className="space-y-1 text-xs">
-                    <p className="flex justify-between">
-                      <span>⭐ Google Cloud Sprints</span>{" "}
-                      <span className="text-text-primary">Active (20)</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>🧩 MVPs Spawned</span>{" "}
-                      <span className="text-text-primary">80+ Prototypes</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>💰 Grant Funding</span>{" "}
-                      <span className="text-text-primary">$25K Secured</span>
-                    </p>
-                  </div>
+                  <p className="flex justify-between gap-4">
+                    <span>🧩 MVPs &amp; Prototypes Spawned</span>{" "}
+                    <span className="text-text-primary font-bold">80+ Projects</span>
+                  </p>
+                  <p className="flex justify-between gap-4">
+                    <span>⚡ Tech Talks &amp; Conventions</span>{" "}
+                    <span className="text-emerald-green font-bold">250+ Attendees</span>
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Gallery Right Horizontal Layout cards */}
-              <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {GALLERY_ITEMS.map((item) => (
-                  <div
-                    key={item.id}
-                    className="group relative rounded-lg overflow-hidden border border-border-color bg-brand-bg-sec min-h-[220px] shadow-lg"
-                  >
-                    <BlurredImage src={item.mediaUrl} alt={item.title} />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-brand-bg via-brand-bg/40 to-transparent flex flex-col justify-end p-5" />
-
-                    <div className="absolute inset-x-0 bottom-0 p-5 translate-y-3 group-hover:translate-y-0 transition-transform duration-300 flex flex-col gap-1.5 select-none animate-fade-in">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="font-mono text-[10px] text-neon-blue font-semibold uppercase">
-                          {item.event}
-                        </span>
-                        <span className="font-mono text-emerald-green font-bold text-xs bg-emerald-green/10 px-2 py-0.5 rounded border border-emerald-green/20">
-                          {item.statLabel || "METRIC"}: {item.statValue || "100%"}
-                        </span>
-                      </div>
-                      <h4 className="text-sm font-sans font-bold text-text-primary uppercase">
-                        {item.title}
-                      </h4>
-                      <p className="text-[10px] text-secondary-text leading-snug opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        {item.highlightText}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* 3D Parallax Cards Stage */}
+            <div className="w-full">
+              <ParallaxCards
+                items={GALLERY_ITEMS}
+                cardCount={10}
+                perspective={1400}
+                mouseSensitivity={2.5}
+                className="my-2"
+              />
             </div>
           </motion.section>
 
@@ -700,21 +927,11 @@ export default function HomePage() {
                 Active Members
               </span>
             </div>
-            <div className="p-8 flex flex-col justify-center overflow-hidden">
-              <span className="text-[10px] uppercase tracking-widest text-[#B3B3B3] font-bold mb-3 italic font-mono">
-                Partners &amp; Sponsors
+            <div className="p-8 flex flex-col justify-center bg-[#111827]/20">
+              <span className="text-3xl font-black text-[#27C93F]">1000+</span>
+              <span className="text-[10px] uppercase tracking-widest text-[#B3B3B3] font-bold font-mono mt-1">
+                Impacted Builders
               </span>
-              <div className="flex gap-4 items-center grayscale opacity-40 select-none">
-                <span className="text-[11px] font-black tracking-tighter uppercase font-sans text-white">
-                  GitHub
-                </span>
-                <span className="text-[11px] font-black tracking-tighter uppercase font-sans text-white">
-                  Vercel
-                </span>
-                <span className="text-[11px] font-black tracking-tighter uppercase font-sans text-white">
-                  Stripe
-                </span>
-              </div>
             </div>
           </motion.section>
 
@@ -1063,7 +1280,7 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-border-color">
             <div className="space-y-3 md:col-span-1">
               <div className="flex justify-start">
-                <TechYuvaLogo size={52} />
+                <TechYuvaLogo size={60} />
               </div>
               <p className="text-[11px] leading-relaxed text-text-secondary">
                 The flagship student-led innovation guild empowering developers to launch real
@@ -1108,31 +1325,13 @@ export default function HomePage() {
                     Historic Logs
                   </button>
                 </li>
-              </ul>
-            </div>
-
-            <div className="space-y-2.5">
-              <h5 className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
-                Engineering Specs
-              </h5>
-              <ul className="space-y-1.5 text-[11px]">
                 <li>
                   <button
-                    onClick={() => setIsSpecsOpen(true)}
-                    className="hover:text-text-primary transition-colors cursor-pointer flex items-center gap-1.5 text-neon-blue font-bold text-left"
+                    onClick={() => setIsPrivacyModalOpen(true)}
+                    className="hover:text-text-primary transition-colors cursor-pointer text-left text-cyan-400"
                   >
-                    🛠️ Interactive Blueprint Manual
+                    Privacy Policy
                   </button>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-text-primary transition-colors flex items-center gap-1.5 text-left"
-                  >
-                    🐙 Core Club Org GitHub
-                  </a>
                 </li>
               </ul>
             </div>
@@ -1155,7 +1354,15 @@ export default function HomePage() {
           </div>
 
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px]">
-            <p>© 2026 Tech Yuva Guild Council. All rights secured internationally.</p>
+            <p>
+              © 2026 Tech Yuva Guild Council. All rights secured internationally. •{" "}
+              <button
+                onClick={() => setIsPrivacyModalOpen(true)}
+                className="hover:text-text-primary text-cyan-400 underline cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+            </p>
             <div className="flex items-center gap-4 text-text-secondary">
               <a
                 href="https://www.instagram.com/techyuva_/"
@@ -1186,15 +1393,89 @@ export default function HomePage() {
         </footer>
 
         {/* FLOATING ACTIVE SYSTEM LAYOUT COMPONENT NODES */}
-        <TechYuvaAI />
-
-        <ArchitectureDocs isOpen={isSpecsOpen} onClose={() => setIsSpecsOpen(false)} />
-
         <EventRegisterModal
           event={selectedEventForReg}
           isOpen={selectedEventForReg !== null}
           onClose={() => setSelectedEventForReg(null)}
         />
+
+        {selectedCertificate != null && (
+          <CertificateViewer
+            certificate={selectedCertificate as never}
+            isOpen={true}
+            onClose={() => setSelectedCertificate(null)}
+          />
+        )}
+
+        {/* PRIVACY POLICY MODAL */}
+        {isPrivacyModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setIsPrivacyModalOpen(false)}
+          >
+            <div
+              className="bg-[#0c0f13] border border-[#1E90FF]/30 p-6 md:p-8 rounded-xl shadow-[0_0_50px_rgba(30,144,255,0.15)] max-w-xl w-full max-h-[85vh] overflow-y-auto space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h2 className="text-lg font-bold font-display uppercase text-text-primary">
+                  Privacy Policy • Tech Yuva
+                </h2>
+                <button
+                  onClick={() => setIsPrivacyModalOpen(false)}
+                  className="text-gray-400 hover:text-white text-xs font-mono"
+                >
+                  ✕ Close
+                </button>
+              </div>
+              <div className="text-xs text-secondary-text font-mono leading-relaxed space-y-3">
+                <p>
+                  Tech Yuva (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed
+                  to protecting your privacy and developer data integrity.
+                </p>
+                <h4 className="text-white font-bold uppercase text-[11px] pt-1">
+                  1. Information We Collect
+                </h4>
+                <p>
+                  We collect minimal information required for event participation, developer
+                  pass issuance, and community engagement—specifically name, email address,
+                  GitHub handle, and organization/institute name.
+                </p>
+                <h4 className="text-white font-bold uppercase text-[11px] pt-1">
+                  2. How Information Is Used
+                </h4>
+                <p>
+                  Your details are strictly used to coordinate workshops, issue verified
+                  digital certificates, send event updates, and verify hackathon check-ins.
+                </p>
+                <h4 className="text-white font-bold uppercase text-[11px] pt-1">
+                  3. Data Protection &amp; Sharing
+                </h4>
+                <p>
+                  We do NOT sell, rent, or trade student or member data to third-party
+                  advertisers. Data stored in our database is protected using
+                  industry-standard encryption and security protocols.
+                </p>
+                <h4 className="text-white font-bold uppercase text-[11px] pt-1">
+                  4. Contact Seat
+                </h4>
+                <p>
+                  For privacy inquiries or data removal requests, contact the Lead Architect
+                  seat at{" "}
+                  <span className="text-[#00BFFF]">techyuva.org@gmail.com</span>.
+                </p>
+              </div>
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => setIsPrivacyModalOpen(false)}
+                  className="px-5 py-2 bg-[#1E90FF]/20 border border-[#1E90FF]/40 text-[#00BFFF] text-xs font-bold uppercase rounded-lg hover:bg-[#1E90FF]/30 transition-all cursor-pointer"
+                >
+                  Acknowledge
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* FULL POSTER LIGHTBOX MODAL */}
         {selectedPosterUrl && (

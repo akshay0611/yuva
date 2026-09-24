@@ -1,3 +1,19 @@
+export interface EventSpeaker {
+  name: string;
+  designation: string[];
+  photo?: string;
+}
+
+export interface EventMetadata {
+  slug?: string;
+  tagline?: string;
+  speaker?: EventSpeaker;
+  highlights?: string[];
+  closingMessage?: string;
+  registrationOpen?: boolean;
+  registrationMessage?: string;
+}
+
 export interface EventItem {
   id: string;
   title: string;
@@ -11,8 +27,9 @@ export interface EventItem {
   status: string;
   spotsLeft?: number;
   featured?: boolean;
-  externalLink?: string;
-  image?: string;
+  externalLink?: string | null;
+  image?: string | null;
+  metadata?: EventMetadata | null;
 }
 
 export interface GalleryItem {
